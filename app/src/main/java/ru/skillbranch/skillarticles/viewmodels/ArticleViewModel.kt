@@ -111,6 +111,14 @@ class ArticleViewModel(
         notify(Notify.ErrorMessage(msg, "OK", null))
     }
 
+    fun handleSearchMode(isSearch: Boolean) {
+        updateState { it.copy(isSearch = isSearch) }
+    }
+
+    fun handleSearch(query: String?) {
+        updateState { it.copy(searchQuery = query) }
+    }
+
 }
 
 data class ArticleState(

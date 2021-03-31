@@ -2,8 +2,11 @@ package ru.skillbranch.skillarticles.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
@@ -20,6 +23,8 @@ import ru.skillbranch.skillarticles.viewmodels.Notify
 
 class RootActivity : AppCompatActivity() {
     private lateinit var viewModel: ArticleViewModel
+    private var isSearchViewExpended = false
+    private var searchQueryText : String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,12 +37,51 @@ class RootActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this, vmFactory).get(ArticleViewModel::class.java)
         viewModel.observeState(this) {
             renderUi(it)
+            isSearchViewExpended = it.isSearch
+            searchQueryText = it.searchQuery
         }
         viewModel.observeNotifications(this) {
             renderNotifications(it)
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        super.onCreateOptionsMenu(menu)
+        menuInflater.inflate(R.menu.toolbar_menu, menu)
+        val menuItem = menu?.findItem(R.id.action_search)
+        val searchView : SearchView = menuItem?.actionView as SearchView
+
+        if(isSearchViewExpended){
+            menuItem.expandActionView()
+            searchView.setQuery(searchQueryText, false)
+            searchView.clearFocus()
+        }
+
+        menuItem.setOnActionExpandListener(object: MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+                viewModel.handleSearchMode(true)
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+                viewModel.handleSearchMode(false)
+                return true
+            }
+        })
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                viewModel.handleSearch(newText)
+                return true
+            }
+
+        })
+        return true
+    }
     private fun renderNotifications(notify: Notify) {
         val snackbar: Snackbar = Snackbar.make(coordinator_container, notify.message, Snackbar.LENGTH_LONG)
             .setAnchorView(bottombar)
