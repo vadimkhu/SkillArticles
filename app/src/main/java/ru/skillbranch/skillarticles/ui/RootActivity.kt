@@ -82,6 +82,7 @@ class RootActivity : AppCompatActivity() {
         })
         return true
     }
+
     private fun renderNotifications(notify: Notify) {
         val snackbar: Snackbar = Snackbar.make(coordinator_container, notify.message, Snackbar.LENGTH_LONG)
             .setAnchorView(bottombar)
